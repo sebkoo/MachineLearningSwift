@@ -46,4 +46,36 @@ final class MachineLearningSwiftTests: XCTestCase {
         XCTAssertFalse(viewModel.classLabel.isEmpty)
         XCTAssertFalse(viewModel.classLabel.contains("Error"))
     }
+
+    func test_isLoadingState_duringClassification() async {
+        let viewModel = ImageClassifierViewModel()
+
+        let size = CGSize(width: 224, height: 224)
+        UIGraphicsBeginImageContext(size)
+        UIColor.red.setFill()
+        UIRectFill(CGRect(origin: .zero, size: size))
+        let testImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+
+        viewModel.selectedImage = testImage
+
+        let expectation = XCTestExpectation(description: "Classification should complete")
+
+        Task {
+            await viewModel.classify()
+            XCTAssertFalse(viewModel.isLoading)
+            XCTAssertFalse(viewModel.classLabel.isEmpty)
+            expectation.fulfill()
+        }
+
+        await fulfillment(of: [expectation], timeout: 5)
+    }
+
+    func test_errorState_whenNoImageProvided() async {
+        let viewModel = ImageClassifierViewModel()
+
+        await viewModel.classify()
+
+        XCTAssertEqual(viewModel.classLabel, "Select an image")
+    }
 }

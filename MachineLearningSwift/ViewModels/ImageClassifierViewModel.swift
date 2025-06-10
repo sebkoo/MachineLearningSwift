@@ -13,6 +13,7 @@ final class ImageClassifierViewModel: ObservableObject {
     @Published var selectedImage: UIImage? = nil
     @Published var classLabel: String = "Select an image"
     @Published var isLoading: Bool = false
+    @Published var errorMessage: String? = nil
 
     private let classifier: ImageClassifier
 
@@ -27,12 +28,16 @@ final class ImageClassifierViewModel: ObservableObject {
     func classify() async {
         guard let image = selectedImage else { return }
         isLoading = true
+        errorMessage = nil
+
         do {
             let label = try await classifier.classify(image: image)
             classLabel = label
         } catch {
             classLabel = "Error: \(error.localizedDescription)"
+            errorMessage = error.localizedDescription
         }
+
         isLoading = false
     }
 }
