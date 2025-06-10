@@ -8,29 +8,42 @@
 import XCTest
 @testable import MachineLearningSwift
 
+@MainActor
 final class MachineLearningSwiftTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    func test_imageClassifier_init() {
+        XCTAssertNoThrow(try ImageClassifier())
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func test_imageClassification() async throws {
+        let classifier = try ImageClassifier()
+        // User a sampel UIImage (solid color)
+        let size = CGSize(width: 224, height: 224)
+        UIGraphicsBeginImageContext(size)
+        UIColor.red.setFill()
+        UIRectFill(CGRect(origin: .zero, size: size))
+        let testImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+
+        let label = try await classifier.classify(image: testImage)
+        XCTAssertFalse(label.isEmpty, "Classification label should not be empty")
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
+    func test_viewModel_classify_updatesLabel() async {
+        let viewModel = ImageClassifierViewModel()
+        // Provide a test image
+        let size = CGSize(width: 224, height: 224)
+        UIGraphicsBeginImageContext(size)
+        UIColor.blue.setFill()
+        UIRectFill(CGRect(origin: .zero, size: size))
+        let testImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
+        viewModel.selectedImage = testImage
 
+        await viewModel.classify()
+
+        XCTAssertFalse(viewModel.classLabel.isEmpty)
+        XCTAssertFalse(viewModel.classLabel.contains("Error"))
+    }
 }
