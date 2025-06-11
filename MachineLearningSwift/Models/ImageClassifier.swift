@@ -7,7 +7,6 @@
 
 import UIKit
 @preconcurrency import Vision
-import Foundation
 
 final class ImageClassifier {
     private let model: VNCoreMLModel

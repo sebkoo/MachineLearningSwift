@@ -78,4 +78,22 @@ final class MachineLearningSwiftTests: XCTestCase {
 
         XCTAssertEqual(viewModel.classLabel, "Select an image")
     }
+
+    func test_PixabayAPI_parseResponse() throws {
+        let json = """
+            {
+              "hits": [
+                {
+                  "id": 123,
+                  "previewURL": "https://example.com/preview.jpg",
+                  "largeImageURL": "https://example.com/large.jpg"
+                }
+              ]
+            }
+            """
+        let data = json.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(ImageSearchResponse.self, from: data)
+        XCTAssertEqual(decoded.hits.count, 1)
+        XCTAssertEqual(decoded.hits[0].id, 123)
+    }
 }
